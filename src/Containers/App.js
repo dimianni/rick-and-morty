@@ -1,26 +1,22 @@
 import { Component } from 'react';
-import './App.css';
+import './App.scss';
 
-import Title from '../Components/Title'
-import List from '../Components/List'
 import axios from 'axios';
-
-
+import { Title, List, Search } from '../Components';
 
 let pageNumber = 1;
-
-
 
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      searchInput: '',
       characters: null
     }
   }
 
-  componentDidMount() {
+  componentDidMount = () => {
     this.getData()
   }
 
@@ -33,7 +29,7 @@ class App extends Component {
     axios.get(api)
       .then(res => {
         this.setState((prev) => {
-          if (prev.characters){
+          if (prev.characters) {
             return { characters: prev.characters.concat(res.data.results) }
           } else {
             return { characters: res.data.results }
@@ -41,43 +37,53 @@ class App extends Component {
         })
       })
 
-    // Using Fetch API:
-    // fetch(api)
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     this.setState({
-    //       characters: data.results
-    //     })
-    //   })
-
     pageNumber++;
 
-    console.log(api);
+  }
+
+  onSearchChange = (e) => {
+    this.setState({
+      searchInput: e.target.value
+    })
   }
 
 
   render() {
 
-    let list = 'Loading...'
-    let moreButton = null;
+    let moreButton = null, filteredCharacters = [];
 
-    if (this.state.characters) {
-      list = <List characters={this.state.characters} />
+    let { characters, searchInput } = this.state;
+
+    if (!characters) {
+
+      return <p>Loading...</p>
+
+    } else {
+
+      moreButton = <button onClick={this.getData}>Load More</button>
+
+      filteredCharacters = characters.filter(char => {
+        return char.name.toLowerCase().includes(searchInput.toLowerCase())
+      })
+
+      return (
+        <main className="Main">
+          <header>
+            <div className="Container">
+              <Title title="Rick and Morty" />
+              <Search onSearchChange={this.onSearchChange} />
+            </div>
+          </header>
+          <section>
+            <div className="Container">
+              <List characters={filteredCharacters} />
+              {moreButton}
+            </div>
+          </section>
+        </main>
+      );
     }
 
-    if (true) {
-      moreButton = <button onClick={this.getData} type="button">Load more</button>
-    }
-
-    return (
-      <main className="Main">
-        <div className="Container">
-          <Title title="Rick and Morty" />
-          {list}
-          {moreButton}
-        </div>
-      </main>
-    );
   }
 }
 
